@@ -7,7 +7,9 @@ Tables (per PLAN.md):
 
 Plus terms_meta, an implementation detail that tracks when each term's
 bulk catalog was last synced so old/finished terms are fetched once and
-never re-fetched, while the current term is refreshed periodically.
+never re-fetched, while the current term is refreshed periodically. And
+course_prereqs, one row per (term, subject, course_number) holding the
+course-level prerequisite tree used by `gtclass tree`.
 """
 
 from __future__ import annotations
@@ -37,6 +39,15 @@ CREATE TABLE IF NOT EXISTS courses (
 
 CREATE INDEX IF NOT EXISTS idx_courses_subject_number
     ON courses (term, subject, course_number);
+
+CREATE TABLE IF NOT EXISTS course_prereqs (
+    term TEXT NOT NULL,
+    subject TEXT NOT NULL,
+    course_number TEXT NOT NULL,
+    title TEXT NOT NULL,
+    prereqs_json TEXT NOT NULL DEFAULT '[]',
+    PRIMARY KEY (term, subject, course_number)
+);
 
 CREATE TABLE IF NOT EXISTS terms_meta (
     term TEXT PRIMARY KEY,

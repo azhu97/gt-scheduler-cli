@@ -291,6 +291,12 @@
         }
       ],
       "Introduction to techniques and methods of object-oriented programming such an encapsulation, inheritance, and polymorphism. Emphasis on software development and individual programming skills."
+    ],
+    "CS 1301": [
+      "Intro Computing",
+      {},
+      [],
+      "Introductory computing course for non-majors."
     ]
   },
   "caches": {

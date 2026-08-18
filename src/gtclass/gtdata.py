@@ -2,17 +2,21 @@
 
 GT Scheduler (https://github.com/gt-scheduler/crawler) publishes a
 heavily-packed JSON blob per term: `courses` maps "SUBJ NUMBER" to
-`[title, sections, attributes, description]`, where `sections` maps a
+`[title, sections, prereqs, description, ...]`, where `sections` maps a
 section id to `[crn, meetings, credits, scheduleTypeIdx, campusIdx,
 attributeIdxs, gradeBaseIdx]`, and each meeting is `[periodIdx, days,
 room, scheduleTypeIdx, instructors, campusIdx, dateRangeIdx,
 finalDateIdx]`. `periodIdx` indexes into `caches.periods` to get a human
-time range (e.g. "9:30 am - 10:45 am"). No seat data lives here — that
-only comes from the live per-CRN endpoint (see live.py).
+time range (e.g. "9:30 am - 10:45 am"). `prereqs` is a nested boolean
+expression tree: `[]` means no prerequisites, otherwise it's
+`["and"|"or", child, child, ...]` where each child is either another such
+list or a leaf `{"id": "SUBJ NUMBER", "grade": "C"}`. No seat data lives
+here — that only comes from the live per-CRN endpoint (see live.py).
 """
 
 from __future__ import annotations
 
+import json
 import sqlite3
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
@@ -134,6 +138,30 @@ def parse_term_catalog(data: dict, term: str) -> list[dict]:
     return rows
 
 
+def parse_term_prereqs(data: dict, term: str) -> list[dict]:
+    """Extract the course-level prerequisite tree for every course in the catalog."""
+    rows: list[dict] = []
+
+    for course_key, course_val in data.get("courses", {}).items():
+        if not isinstance(course_val, list) or len(course_val) < 1:
+            continue
+        title = course_val[0] or ""
+        prereqs = course_val[2] if len(course_val) > 2 and course_val[2] else []
+        subject, _, course_number = course_key.partition(" ")
+
+        rows.append(
+            {
+                "term": term,
+                "subject": subject,
+                "course_number": course_number,
+                "title": title,
+                "prereqs_json": json.dumps(prereqs),
+            }
+        )
+
+    return rows
+
+
 @dataclass
 class SyncResult:
     synced: bool
@@ -146,6 +174,13 @@ def _get_terms_meta(conn: sqlite3.Connection, term: str) -> sqlite3.Row | None:
     ).fetchone()
 
 
+def _has_prereqs(conn: sqlite3.Connection, term: str) -> bool:
+    row = conn.execute(
+        "SELECT 1 FROM course_prereqs WHERE term = ? LIMIT 1", (term,)
+    ).fetchone()
+    return row is not None
+
+
 def sync_term(
     conn: sqlite3.Connection,
     client: httpx.Client,
@@ -156,11 +191,17 @@ def sync_term(
     meta = _get_terms_meta(conn, term)
     if meta and not force:
         synced_at = datetime.fromisoformat(meta["synced_at"])
-        if datetime.now(timezone.utc) - synced_at < STALE_AFTER:
+        fresh = datetime.now(timezone.utc) - synced_at < STALE_AFTER
+        # A term synced before course_prereqs existed (or synced while empty)
+        # won't have prereq rows yet; re-fetch once to backfill them even if
+        # otherwise "fresh", rather than waiting out STALE_AFTER.
+        backfilled = meta["course_count"] == 0 or _has_prereqs(conn, term)
+        if fresh and backfilled:
             return SyncResult(synced=False, course_count=meta["course_count"])
 
     data = fetch_term_catalog(client, term)
     rows = parse_term_catalog(data, term)
+    prereq_rows = parse_term_prereqs(data, term)
     now = datetime.now(timezone.utc).isoformat()
 
     conn.execute("DELETE FROM courses WHERE term = ?", (term,))
@@ -174,6 +215,14 @@ def sync_term(
              :instructor, :meeting_days, :meeting_time, :location, :credits)
         """,
         rows,
+    )
+    conn.execute("DELETE FROM course_prereqs WHERE term = ?", (term,))
+    conn.executemany(
+        """
+        INSERT INTO course_prereqs (term, subject, course_number, title, prereqs_json)
+        VALUES (:term, :subject, :course_number, :title, :prereqs_json)
+        """,
+        prereq_rows,
     )
     conn.execute(
         """

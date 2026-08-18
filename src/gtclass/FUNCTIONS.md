@@ -25,6 +25,8 @@ see the note in `CLAUDE.md`.
   prints a results table.
 - `info` — shows full detail for one CRN (catalog row + live seat status),
   optionally with recorded seat history.
+- `tree` — prints a recursive tree of prerequisites for a course
+  ("SUBJECT NUMBER"), resolving referenced courses within the same term.
 - `watch` — Click group namespacing the `watch add|list|remove` commands.
 - `watch_add` — starts tracking a CRN, resolving a `"SUBJECT NUMBER"` +
   `--section` query to a CRN first if needed.
@@ -81,8 +83,9 @@ see the note in `CLAUDE.md`.
 
 - `connect` — context manager yielding a `sqlite3.Connection` to the
   gtclass DB (row factory set, commits on clean exit).
-- `init_db` — runs the schema (`courses`, `terms_meta`, `seat_snapshots`,
-  `watchlist`) as `CREATE TABLE IF NOT EXISTS`, safe to call every time.
+- `init_db` — runs the schema (`courses`, `course_prereqs`, `terms_meta`,
+  `seat_snapshots`, `watchlist`) as `CREATE TABLE IF NOT EXISTS`, safe to
+  call every time.
 
 ## `formatting.py`
 
@@ -92,6 +95,15 @@ see the note in `CLAUDE.md`.
 - `print_seat_history` — renders the `--history` seat-snapshot table for
   `info`.
 - `print_watchlist` — renders `watch list` output as a Rich table.
+- `_course_label` — builds a "SUBJ NUM — Title (min grade X)" label for one
+  prereq-tree node.
+- `_prereq_course_node` — builds the Rich `Tree` node for one course,
+  recursing into its own prerequisites (guarding against cycles and a max
+  depth).
+- `_add_prereq_expr` — recursively adds an "and"/"or" prereq expression
+  (or a leaf course reference) as children of a tree node.
+- `print_prereq_tree` — renders the `tree` command's output: the full
+  recursive prerequisite tree for one course.
 
 ## `gtdata.py`
 
@@ -106,11 +118,13 @@ see the note in `CLAUDE.md`.
 - `_clean_days` — strips `&nbsp;` and whitespace from a raw meeting-days string.
 - `parse_term_catalog` — flattens the packed catalog blob into one flat
   dict per (term, CRN) row, ready for SQLite insertion.
+- `parse_term_prereqs` — extracts each course's prerequisite expression
+  tree (and title) into one row per (term, subject, course_number).
 - `SyncResult` — dataclass reporting whether a `sync_term` call actually
   fetched, and the resulting course count.
 - `_get_terms_meta` — reads a term's row from `terms_meta`.
-- `sync_term` — ensures a term's catalog is cached in SQLite, re-fetching
-  only if stale (or forced).
+- `sync_term` — ensures a term's catalog (and prereq trees) is cached in
+  SQLite, re-fetching only if stale (or forced).
 - `resolve_default_term` — walks GT Scheduler's term index newest-first
   and returns the first term that actually has course data, since the
   index can list terms ahead of what the crawler has populated.

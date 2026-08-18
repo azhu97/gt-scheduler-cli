@@ -1,7 +1,7 @@
 import json
 from pathlib import Path
 
-from gtclass.gtdata import parse_term_catalog
+from gtclass.gtdata import parse_term_catalog, parse_term_prereqs
 
 FIXTURE = Path(__file__).parent / "fixtures" / "sample_term.json"
 
@@ -46,3 +46,23 @@ def test_parse_term_catalog_row_count():
     # 4 ACCT 2101 sections + 7 CS 1331 sections
     assert len(rows) == 11
     assert all(r["term"] == "202302" for r in rows)
+
+
+def test_parse_term_prereqs_no_prereqs():
+    rows = parse_term_prereqs(load_fixture(), term="202302")
+    by_key = {(r["subject"], r["course_number"]): r for r in rows}
+
+    row = by_key[("ACCT", "2101")]
+    assert row["title"] == "Accounting I"
+    assert json.loads(row["prereqs_json"]) == []
+
+
+def test_parse_term_prereqs_nested_expression():
+    rows = parse_term_prereqs(load_fixture(), term="202302")
+    by_key = {(r["subject"], r["course_number"]): r for r in rows}
+
+    row = by_key[("CS", "1331")]
+    tree = json.loads(row["prereqs_json"])
+    assert tree[0] == "or"
+    assert {"id": "CS 1301", "grade": "C"} in tree
+    assert {"id": "CS 1315", "grade": "C"} in tree

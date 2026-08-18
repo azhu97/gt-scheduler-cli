@@ -131,6 +131,32 @@ def info(crn: str, term: str | None, history: bool) -> None:
             formatting.print_seat_history(rows)
 
 
+@main.command()
+@click.argument("query")
+@click.option("--term", help="Term code. Defaults to the current term.")
+def tree(query: str, term: str | None) -> None:
+    """Show a tree of prerequisites for a course (e.g. "CS 3510")."""
+    cfg = load_config()
+    with db.connect() as conn, gtdata.new_client() as client:
+        db.init_db(conn)
+        resolved_term = _resolve_term(conn, client, term, cfg)
+        _sync(conn, client, resolved_term)
+
+        parsed = _split_course_query(query)
+        if not parsed:
+            raise click.ClickException(f"couldn't parse {query!r} as \"SUBJECT NUMBER\"")
+        subject, number = parsed
+
+        found = conn.execute(
+            "SELECT 1 FROM course_prereqs WHERE term = ? AND subject = ? AND course_number = ?",
+            (resolved_term, subject, number),
+        ).fetchone()
+        if found is None:
+            raise click.ClickException(f"{subject} {number} not found in term {resolved_term}")
+
+        formatting.print_prereq_tree(conn, resolved_term, subject, number)
+
+
 @main.group()
 def watch() -> None:
     """Manage the CRN watchlist."""

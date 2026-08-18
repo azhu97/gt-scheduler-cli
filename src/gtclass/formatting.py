@@ -1,14 +1,20 @@
-"""Rich table helpers for CLI output."""
+"""Rich table/tree helpers for CLI output."""
 
 from __future__ import annotations
 
+import json
 import sqlite3
 
 from rich.console import Console
 from rich.table import Table
+from rich.tree import Tree
 
 console = Console()
 err_console = Console(stderr=True)
+
+# Guards against pathological/cyclic prereq trees when recursing into
+# referenced courses in print_prereq_tree.
+MAX_PREREQ_DEPTH = 6
 
 
 def print_search_results(rows: list[sqlite3.Row], term: str) -> None:
@@ -111,3 +117,77 @@ def print_watchlist(rows: list[sqlite3.Row]) -> None:
             "" if r["waitlist_available"] is None else str(r["waitlist_available"]),
         )
     console.print(table)
+
+
+def _course_label(subject: str, course_number: str, title: str | None, grade: str | None) -> str:
+    label = f"[bold]{subject} {course_number}[/bold]"
+    if title:
+        label += f" — {title}"
+    if grade:
+        label += f" [dim](min grade {grade})[/dim]"
+    return label
+
+
+def _prereq_course_node(
+    conn: sqlite3.Connection,
+    term: str,
+    subject: str,
+    course_number: str,
+    grade: str | None,
+    ancestors: frozenset[tuple[str, str]],
+    depth: int,
+) -> Tree:
+    """Build the tree node for one course, recursing into its own prereqs."""
+    row = conn.execute(
+        "SELECT title, prereqs_json FROM course_prereqs WHERE term = ? AND subject = ? AND course_number = ?",
+        (term, subject, course_number),
+    ).fetchone()
+
+    key = (subject, course_number)
+    node = Tree(_course_label(subject, course_number, row["title"] if row else None, grade))
+
+    if row is None:
+        node.add("[dim](not offered this term — no prerequisite data)[/dim]")
+        return node
+    if key in ancestors:
+        node.add("[dim](already shown above — skipping to avoid a cycle)[/dim]")
+        return node
+    if depth >= MAX_PREREQ_DEPTH:
+        node.add("[dim](max depth reached)[/dim]")
+        return node
+
+    prereqs = json.loads(row["prereqs_json"]) if row["prereqs_json"] else []
+    if prereqs:
+        _add_prereq_expr(node, conn, term, prereqs, ancestors | {key}, depth + 1)
+    else:
+        node.add("[dim](no prerequisites)[/dim]")
+    return node
+
+
+def _add_prereq_expr(
+    node: Tree,
+    conn: sqlite3.Connection,
+    term: str,
+    expr,
+    ancestors: frozenset[tuple[str, str]],
+    depth: int,
+) -> None:
+    if not expr:
+        return
+    if isinstance(expr, dict):
+        subject, _, course_number = expr.get("id", "").partition(" ")
+        if subject and course_number:
+            node.add(
+                _prereq_course_node(conn, term, subject, course_number, expr.get("grade"), ancestors, depth)
+            )
+        return
+    if isinstance(expr, list) and expr and isinstance(expr[0], str) and expr[0] in ("and", "or"):
+        op, *children = expr
+        op_node = node.add(f"[italic]{op.upper()}[/italic]")
+        for child in children:
+            _add_prereq_expr(op_node, conn, term, child, ancestors, depth)
+
+
+def print_prereq_tree(conn: sqlite3.Connection, term: str, subject: str, course_number: str) -> None:
+    root = _prereq_course_node(conn, term, subject, course_number, None, frozenset(), 0)
+    console.print(root)

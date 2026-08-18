@@ -12,6 +12,15 @@ lives in `PLAN.md` — read it for the "why" behind the architecture below.
 The MVP described there is implemented; not-yet-built items (Phase 3
 Banner client, extra notify channels) are called out in README.md.
 
+## Function reference
+
+`src/gtclass/FUNCTIONS.md` documents the general purpose of every
+function, method, and class in `src/gtclass/` — one line each, organized
+by module. **Whenever you add, remove, rename, or change the purpose of a
+function in `src/gtclass/`, update `FUNCTIONS.md` in the same change.**
+This applies to every function ever created here, with no exceptions —
+private helpers (`_leading_underscore`) included.
+
 ## Commands
 
 ```

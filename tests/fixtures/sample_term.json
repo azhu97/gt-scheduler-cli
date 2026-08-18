@@ -1,0 +1,664 @@
+{
+  "courses": {
+    "ACCT 2101": [
+      "Accounting I",
+      {
+        "A": [
+          "25096",
+          [
+            [
+              0,
+              "MW",
+              "Scheller College of Business 103",
+              0,
+              [
+                "Eric R Condie (P)"
+              ],
+              0,
+              1,
+              0
+            ]
+          ],
+          3,
+          0,
+          0,
+          [
+            0
+          ],
+          0
+        ],
+        "B": [
+          "20631",
+          [
+            [
+              1,
+              "MW",
+              "Scheller College of Business 103",
+              0,
+              [
+                "Eric R Condie (P)"
+              ],
+              0,
+              1,
+              1
+            ]
+          ],
+          3,
+          0,
+          0,
+          [
+            0
+          ],
+          0
+        ],
+        "C": [
+          "25095",
+          [
+            [
+              2,
+              "TR",
+              "Scheller College of Business 203",
+              0,
+              [
+                "Deborah H Turner (P)"
+              ],
+              0,
+              5,
+              3
+            ]
+          ],
+          3,
+          0,
+          0,
+          [],
+          0
+        ],
+        "D": [
+          "20630",
+          [
+            [
+              0,
+              "TR",
+              "Scheller College of Business 222",
+              0,
+              [
+                "Marvin Anthony Tingler (P)"
+              ],
+              0,
+              2,
+              0
+            ]
+          ],
+          3,
+          0,
+          0,
+          [],
+          0
+        ]
+      },
+      [],
+      "An introduction to the measurement and financial reporting of organizations and the interpretation of the resulting financial statements. Credit not allowed for MGT 3000 and ACCT 2101."
+    ],
+    "CS 1331": [
+      "Intro-Object Orient Prog",
+      {
+        "A": [
+          "25594",
+          [
+            [
+              29,
+              "MWF",
+              "Scheller College of Business 100",
+              0,
+              [
+                "Richard Landry (P)"
+              ],
+              0,
+              4,
+              3
+            ]
+          ],
+          3,
+          0,
+          0,
+          [
+            1
+          ],
+          1
+        ],
+        "B": [
+          "21941",
+          [
+            [
+              19,
+              "MWF",
+              "Scheller College of Business 100",
+              0,
+              [
+                "Richard Landry (P)"
+              ],
+              0,
+              1,
+              3
+            ]
+          ],
+          3,
+          0,
+          0,
+          [
+            1
+          ],
+          1
+        ],
+        "C": [
+          "23450",
+          [
+            [
+              20,
+              "MWF",
+              "Boggs B5",
+              7,
+              [
+                "Aibek Manas Musaev (P)"
+              ],
+              0,
+              4,
+              0
+            ]
+          ],
+          3,
+          0,
+          0,
+          [
+            1
+          ],
+          1
+        ],
+        "D": [
+          "28275",
+          [
+            [
+              10,
+              "MWF",
+              "Klaus Advanced Computing 1443",
+              6,
+              [
+                "Aibek Manas Musaev (P)"
+              ],
+              0,
+              1,
+              0
+            ]
+          ],
+          3,
+          0,
+          0,
+          [
+            1
+          ],
+          1
+        ],
+        "GR": [
+          "27173",
+          [
+            [
+              29,
+              "MWF",
+              "Scheller College of Business 100",
+              0,
+              [
+                "Richard Landry (P)"
+              ],
+              0,
+              4,
+              3
+            ]
+          ],
+          3,
+          0,
+          0,
+          [
+            1
+          ],
+          3
+        ],
+        "O1": [
+          "27469",
+          [
+            [
+              3,
+              "W",
+              "Clough UG Learning Commons 144",
+              16,
+              [
+                "Olufisayo A Omojokun (P)"
+              ],
+              0,
+              -1,
+              -1
+            ]
+          ],
+          3,
+          0,
+          0,
+          [
+            1
+          ],
+          1
+        ],
+        "QH": [
+          "34617",
+          [
+            [
+              9,
+              "&nbsp;",
+              "TBA",
+              5,
+              [
+                "Olufisayo A Omojokun (P)"
+              ],
+              0,
+              -1,
+              -1
+            ]
+          ],
+          3,
+          0,
+          2,
+          [
+            1
+          ],
+          1
+        ]
+      },
+      [
+        "or",
+        {
+          "id": "CS 1301",
+          "grade": "C"
+        },
+        {
+          "id": "CS 1315",
+          "grade": "C"
+        },
+        {
+          "id": "CS 1321",
+          "grade": "C"
+        },
+        {
+          "id": "CS 1371",
+          "grade": "C"
+        }
+      ],
+      "Introduction to techniques and methods of object-oriented programming such an encapsulation, inheritance, and polymorphism. Emphasis on software development and individual programming skills."
+    ]
+  },
+  "caches": {
+    "periods": [
+      "12:30 pm - 1:45 pm",
+      "2:00 pm - 3:15 pm",
+      "9:30 am - 10:45 am",
+      "5:00 pm - 5:50 pm",
+      "6:30 pm - 9:15 pm",
+      "8:25 am - 10:20 am",
+      "5:00 pm - 6:15 pm",
+      "6:30 pm - 7:45 pm",
+      "2:00 pm - 2:50 pm",
+      "TBA",
+      "12:30 pm - 1:20 pm",
+      "3:30 pm - 5:25 pm",
+      "5:00 pm - 6:55 pm",
+      "8:00 am - 9:15 am",
+      "11:00 am - 12:15 pm",
+      "3:30 pm - 4:45 pm",
+      "12:30 pm - 2:25 pm",
+      "6:30 pm - 8:25 pm",
+      "3:30 pm - 6:15 pm",
+      "9:30 am - 10:20 am",
+      "11:00 am - 11:50 am",
+      "2:00 pm - 3:55 pm",
+      "12:30 pm - 6:15 pm",
+      "3:30 pm - 4:20 pm",
+      "2:00 pm - 3:00 pm",
+      "11:00 am - 12:55 pm",
+      "12:30 pm - 3:15 pm",
+      "6:30 pm - 7:20 pm",
+      "6:00 am - 7:15 am",
+      "8:25 am - 9:15 am",
+      "8:00 am - 10:45 am",
+      "5:00 pm - 7:45 pm",
+      "3:30 pm - 5:20 pm",
+      "2:00 pm - 4:45 pm",
+      "2:35 pm - 3:50 pm",
+      "3:50 pm - 5:05 pm",
+      "2:30 pm - 5:00 pm",
+      "4:00 pm - 7:00 pm",
+      "8:00 pm - 8:50 pm",
+      "10:00 am - 3:45 pm",
+      "8:00 am - 8:50 am",
+      "8:00 pm - 9:15 pm",
+      "11:00 am - 1:45 pm",
+      "8:00 pm - 9:30 pm",
+      "12:30 pm - 1:30 pm",
+      "7:00 pm - 7:50 pm",
+      "1:30 pm - 2:30 pm",
+      "9:30 am - 12:15 pm",
+      "3:30 pm - 9:15 pm",
+      "8:00 am - 11:50 am",
+      "12:30 pm - 4:20 pm",
+      "5:00 pm - 7:25 pm",
+      "1:00 pm - 3:45 pm",
+      "8:30 am - 4:40 pm",
+      "8:00 am - 10:00 am",
+      "1:00 pm - 5:00 pm",
+      "6:30 am - 8:25 am",
+      "8:30 am - 11:15 am",
+      "6:30 am - 9:15 am",
+      "5:45 am - 6:35 am",
+      "7:00 pm - 9:00 pm",
+      "4:35 pm - 5:25 pm"
+    ],
+    "dateRanges": [
+      "Jan 09, 2023 - May 04, 2023",
+      "Feb 27, 2023 - May 04, 2023",
+      "Feb 13, 2023 - Mar 17, 2023",
+      "Jan 09, 2023 - Feb 24, 2023",
+      "Jan 09, 2023 - Feb 10, 2023",
+      "Jan 20, 2023 - Jan 21, 2023",
+      "Feb 10, 2023 - Feb 11, 2023",
+      "Mar 03, 2023 - Mar 04, 2023",
+      "Apr 07, 2023 - Apr 08, 2023",
+      "Jan 09, 2023 - Feb 17, 2023"
+    ],
+    "scheduleTypes": [
+      "Lecture*",
+      "Supervised Laboratory*",
+      "Recitation*",
+      "Breakout*",
+      "Directed Study*",
+      "Studio*",
+      "Mixed Laboratory*",
+      "Thesis*",
+      "Unsupervised Laboratory*",
+      "Dissertation*",
+      "Seminar*",
+      "Internship/Practicum*",
+      "Co-op Work Assignment",
+      "Common Exam*",
+      "Practice Teaching*"
+    ],
+    "campuses": [
+      "Georgia Tech-Atlanta *",
+      "GT Lorraine-Undergrad Programs",
+      "Video",
+      "GT Lorraine-Graduate Programs",
+      "Georgia Tech Studies Abroad",
+      "GT, Peking University, & Emory",
+      "This course will be taught on the Emory",
+      "Georgia Tech - Shenzhen",
+      "Online",
+      "MBA Evening Program",
+      "Foreign Exchange",
+      "Global",
+      "Graduate Certificate",
+      "Georgia Southern/GTREP",
+      "Georgia Tech-Savannah",
+      "Georgia Tech - Korea"
+    ],
+    "attributes": [
+      "Isolate Course in Canvas",
+      "STEM USG",
+      "GTL Metz (UG Program)",
+      "One Semester",
+      "Study Abroad",
+      "Branch Campus Abroad",
+      "Tech Elect CS",
+      "Engr",
+      "&Sciences",
+      "Low-cost $40 or undr req txtbk",
+      "Res/CP  >= 101 cont hrs",
+      "Serve Learn Sustain",
+      "Capstone",
+      "Military Science Course",
+      "No-cost $0 req'd textbooks",
+      "Pacific Program Spring",
+      "Honors Program",
+      "Humanities Requirement",
+      "Ethics Requirement",
+      "Remote Asynchronous Course",
+      "Barcelona Fall Program",
+      "Faculty Led",
+      "Computer Systems (CS)",
+      "Networking & Telecom (CS)",
+      "Graphics & Visualization (CS)",
+      "Intelligent Systems (CS)",
+      "Educational Technoloogy (CS)",
+      "Data Mgt Systems (CS)",
+      "Theory (CS)",
+      "Usablity (CS)",
+      "OMSCS GT Lorraine",
+      "Internship Abroad",
+      "Social Science Requirement",
+      "Global Economics (IP)",
+      "Res/CP 51-100 cont/hrs",
+      "Res/CP <= 30 cont hrs",
+      "Res/CP 31-50 cont hrs",
+      "Exchange/Bilateral",
+      "Country and Region (IP)",
+      "Legislative Requirements",
+      "International Relations (IP)",
+      "Work-based >= 101 cont hrs",
+      "Work-based 51-100 cont hrs",
+      "Bioengineering Design II",
+      "Mechanical Systems Design II",
+      "Thermal Systems Design II",
+      "Svc. Lrng 21-50 hrs svc"
+    ],
+    "gradeBases": [
+      "ALP ",
+      "L ",
+      "A ",
+      "P ",
+      "LP ",
+      "X ",
+      "AP ",
+      "6 ",
+      "7 "
+    ],
+    "locations": [
+      {
+        "lat": 33.776533,
+        "long": -84.387765
+      },
+      {
+        "lat": 33.771771,
+        "long": -84.395796
+      },
+      {
+        "lat": 33.775587,
+        "long": -84.401213
+      },
+      {
+        "lat": 33.773568,
+        "long": -84.395957
+      },
+      {
+        "lat": 33.779004,
+        "long": -84.395849
+      },
+      null,
+      {
+        "lat": 33.777107,
+        "long": -84.395817
+      },
+      {
+        "lat": 33.776085,
+        "long": -84.400181
+      },
+      {
+        "lat": 33.772114,
+        "long": -84.395289
+      },
+      {
+        "lat": 33.776764,
+        "long": -84.39844
+      },
+      {
+        "lat": 33.772949,
+        "long": -84.396066
+      },
+      {
+        "lat": 33.77672,
+        "long": -84.401764
+      },
+      {
+        "lat": 33.773801,
+        "long": -84.395122
+      },
+      {
+        "lat": 33.777576,
+        "long": -84.397352
+      },
+      {
+        "lat": 33.776177,
+        "long": -84.395459
+      },
+      {
+        "lat": 33.77622,
+        "long": -84.397959
+      },
+      {
+        "lat": 33.774909,
+        "long": -84.396404
+      },
+      {
+        "lat": 33.777187,
+        "long": -84.400484
+      },
+      {
+        "lat": 33.776065,
+        "long": -84.397116
+      },
+      {
+        "lat": 33.777622,
+        "long": -84.398785
+      },
+      {
+        "lat": 33.779177,
+        "long": -84.392196
+      },
+      {
+        "lat": 33.780983,
+        "long": -84.404516
+      },
+      {
+        "lat": 33.779495,
+        "long": -84.405633
+      },
+      {
+        "lat": 33.778011,
+        "long": -84.397065
+      },
+      {
+        "lat": 33.771658,
+        "long": -84.395302
+      },
+      {
+        "lat": 33.778759,
+        "long": -84.399597
+      },
+      {
+        "lat": 33.776076,
+        "long": -84.396114
+      },
+      {
+        "lat": 33.779836,
+        "long": -84.396666
+      },
+      {
+        "lat": 33.778513,
+        "long": -84.396825
+      },
+      {
+        "lat": 33.775803,
+        "long": -84.398189
+      },
+      {
+        "lat": 33.77561,
+        "long": -84.38906
+      },
+      {
+        "lat": 33.773714,
+        "long": -84.394047
+      },
+      {
+        "lat": 33.777062,
+        "long": -84.388997
+      },
+      {
+        "lat": 33.7742,
+        "long": -84.394637
+      },
+      {
+        "lat": 33.776532,
+        "long": -84.397307
+      },
+      {
+        "lat": 33.774134,
+        "long": -84.39396
+      },
+      {
+        "lat": 33.77247,
+        "long": -84.391271
+      },
+      {
+        "lat": 33.775778,
+        "long": -84.401885
+      },
+      {
+        "lat": 33.775178,
+        "long": -84.401879
+      },
+      {
+        "lat": 33.773978,
+        "long": -84.404311
+      },
+      {
+        "lat": 33.775381,
+        "long": -84.391451
+      },
+      {
+        "lat": 33.779564,
+        "long": -84.404718
+      },
+      {
+        "lat": 33.778233,
+        "long": -84.404507
+      },
+      {
+        "lat": 33.77258,
+        "long": -84.395624
+      },
+      {
+        "lat": 33.772075,
+        "long": -84.395277
+      }
+    ],
+    "finalDates": [
+      "Apr 27, 2023",
+      "Apr 28, 2023",
+      "May 01, 2023",
+      "May 02, 2023",
+      "May 03, 2023",
+      "May 04, 2023"
+    ],
+    "finalTimes": [
+      "11:20 am - 2:10 pm",
+      "2:40 pm - 5:30 pm",
+      "6:00 pm - 8:50 pm",
+      "8:00 am - 10:50 am"
+    ]
+  },
+  "updatedAt": "2023-03-22T12:55:13.863Z",
+  "version": 3
+}

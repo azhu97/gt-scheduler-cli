@@ -44,7 +44,9 @@ Course data (bulk JSON + live per-CRN feed)
 Module map (`src/gtclass/`):
 
 - `gtdata.py` — fetches and parses GT Scheduler's bulk term catalog
-  (`https://gt-scheduler.github.io/crawler/{term}.json`). This is a
+  (`https://gt-scheduler.github.io/crawler-v2/{term}.json`, the actively
+  maintained crawler; the older `.../crawler/{term}.json` repo it used to
+  point at stopped being updated in 2023). This is a
   **heavily packed, positional JSON format**, not a normal REST payload:
   `courses` maps `"SUBJ NUMBER"` → `[title, sections, attributes,
   description]`; `sections` maps a section id → `[crn, meetings, credits,
@@ -110,11 +112,22 @@ Module map (`src/gtclass/`):
   non-empty term if offline). See `cli._resolve_term` /
   `gtdata.resolve_default_term`.
 - **GT Scheduler's `index.json` can list terms its crawler hasn't
-  populated yet** — e.g. it currently lists `202308` as the newest term,
-  but that term's catalog is an empty `{"courses": {}}` placeholder (real
-  data tops out at `202302`). `resolve_default_term()` walks the index
-  newest-first and syncs candidates until one has `course_count > 0`,
-  rather than trusting the max term code. Don't regress this to `max(terms)`.
+  populated yet** — a term can be present with an empty `{"courses": {}}`
+  placeholder before the crawler backfills it. `resolve_default_term()`
+  walks the index newest-first and syncs candidates until one has
+  `course_count > 0`, rather than trusting the max term code. Don't
+  regress this to `max(terms)`. Note `index.json`'s entries are objects
+  (`{"term": "202608", "finalized": true}`), not bare term-code strings —
+  `fetch_term_index()` unwraps that.
+- **The org's original `crawler` repo/Pages site
+  (`gt-scheduler.github.io/crawler/...`) stopped being updated in 2023**
+  and now silently serves stale data frozen at Spring 2023 (`202302`) —
+  it doesn't 404, so a resolver pointed at it will confidently report the
+  wrong "current" term forever. GT Scheduler migrated to `crawler-v2`
+  (`gt-scheduler.github.io/crawler-v2/...`), which `gtdata.py`'s
+  `INDEX_URL`/`TERM_URL_TMPL` now point at. If "current term" ever looks
+  wrong again, check whether the org has moved on to a `crawler-v3` etc.
+  before assuming the bug is in `resolve_default_term()`.
 - **`watch list` refreshes live by default** (`--refresh/--no-refresh`,
   default on) — it calls `poll_once()` before rendering, so it also
   writes new snapshots and can trigger notifications as a side effect of

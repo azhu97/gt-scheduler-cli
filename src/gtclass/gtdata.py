@@ -178,26 +178,35 @@ def sync_term(
 
 
 def resolve_default_term(conn: sqlite3.Connection, client: httpx.Client | None) -> str:
-    """Pick the current term: the latest one GT Scheduler knows about.
+    """Pick the current term: the latest one GT Scheduler actually has data for.
 
-    Falls back to the most recently synced local term if the index can't
-    be reached (e.g. offline), and finally raises if nothing is cached.
+    GT Scheduler's index sometimes lists terms ahead of what its crawler has
+    populated yet (an empty `{"courses": {}}` placeholder), so this walks
+    the index newest-first and syncs each candidate until one has course
+    data, rather than trusting the max term code blindly. Falls back to the
+    most recently synced *non-empty* local term if the index can't be
+    reached (e.g. offline), and finally raises if nothing is cached.
     """
     if client is not None:
         try:
             terms = fetch_term_index(client)
-            if terms:
-                return max(terms)
         except GTDataError:
-            pass
+            terms = []
+        for term in sorted(terms, reverse=True):
+            try:
+                result = sync_term(conn, client, term)
+            except GTDataError:
+                continue
+            if result.course_count > 0:
+                return term
 
     row = conn.execute(
-        "SELECT term FROM terms_meta ORDER BY synced_at DESC LIMIT 1"
+        "SELECT term FROM terms_meta WHERE course_count > 0 ORDER BY term DESC LIMIT 1"
     ).fetchone()
     if row:
         return row["term"]
 
     raise GTDataError(
-        "couldn't reach GT Scheduler and no term is cached locally; "
-        "pass --term explicitly"
+        "couldn't find a term with course data (GT Scheduler's crawler may "
+        "be behind for recent terms); pass --term explicitly"
     )

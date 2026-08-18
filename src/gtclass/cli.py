@@ -43,9 +43,14 @@ def _split_course_query(query: str) -> tuple[str, str] | None:
     return match.group(1).upper(), match.group(2).upper()
 
 
-@click.group()
-def main() -> None:
+@click.group(invoke_without_command=True)
+@click.pass_context
+def main(ctx: click.Context) -> None:
     """gtclass — browse GT course data and watch CRNs for seat/waitlist changes."""
+    if ctx.invoked_subcommand is None:
+        from gtclass.shell import run_repl
+
+        run_repl()
 
 
 @main.command()

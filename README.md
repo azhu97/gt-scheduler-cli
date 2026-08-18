@@ -40,6 +40,23 @@ gtclass daemon status
 Config lives at `~/.config/gtclass/config.toml`; the SQLite store lives at
 `~/.local/share/gtclass/gtclass.db`.
 
+## Interactive shell
+
+Running `gtclass` with no arguments drops you into an interactive shell —
+type any of the commands above without the leading `gtclass`:
+
+```
+$ gtclass
+gtclass interactive shell — type a command (e.g. `search CS 4210`), or `exit`/Ctrl+D to quit.
+gtclass> search "CS 4210"
+gtclass> watch add 87086
+gtclass> watch list
+gtclass> exit
+```
+
+`gtclass <command> ...` from a normal shell still runs one-shot as before —
+the interactive shell is purely additive.
+
 ## Notification channels (MVP)
 
 - **desktop** — macOS notification via `osascript`, zero setup, requires

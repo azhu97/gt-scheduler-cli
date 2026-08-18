@@ -87,7 +87,14 @@ Module map (`src/gtclass/`):
   add|list|remove` / `notify test|config` / `daemon start|stop|status`.
   `watch add` accepts either a raw CRN or a `"SUBJECT NUMBER"` query plus
   `--section`; ambiguous course queries (multiple matching sections, no
-  `--section`) raise a `ClickException` listing the options.
+  `--section`) raise a `ClickException` listing the options. The `main`
+  group is `invoke_without_command=True`; a bare invocation with no
+  subcommand hands off to `shell.run_repl()`.
+- `shell.py` — interactive shell (bare `gtclass`). Reuses the same Click
+  command tree as the parser/dispatcher: each typed line is `shlex.split()`
+  and fed into `cli.main.main(args=..., standalone_mode=False)`, so every
+  command gets shell support for free with no duplicated logic. Stateless —
+  `--term` / `default_term` behave exactly as in one-shot invocations.
 
 ## Non-obvious behavior worth knowing before changing things
 
@@ -101,3 +108,8 @@ Module map (`src/gtclass/`):
   just listing.
 - **CRNs are looked up per-term**: `courses` and `seat_snapshots` are
   both keyed on `(term, crn)`, not `crn` alone.
+- **Bare `gtclass` launches the interactive shell**, not help text — a
+  behavior change from a plain `click.group()`. `gtclass --help` still
+  works (Click's `--help` is an eager option, processed before the
+  group's callback). Piping into `gtclass` non-interactively prints a
+  hint and returns immediately rather than blocking on `input()`.

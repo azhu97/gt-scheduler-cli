@@ -100,8 +100,10 @@ def run_repl() -> None:
         db.init_db(conn)
         term = _select_term(conn, client)
 
+    prompt = PROMPT
     if term:
         os.environ[SESSION_TERM_ENV_VAR] = term
+        prompt = f"gtclass>{gtdata.term_label(term)}> "
         console.print(
             f"[green]Using {gtdata.term_label(term)} [{term}][/green] for this "
             "session (pass --term to override for a single command)."
@@ -113,7 +115,7 @@ def run_repl() -> None:
 
     while True:
         try:
-            line = input(PROMPT)
+            line = input(prompt)
         except EOFError:
             console.print()
             break

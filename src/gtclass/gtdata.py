@@ -19,8 +19,8 @@ from datetime import datetime, timedelta, timezone
 
 import httpx
 
-INDEX_URL = "https://gt-scheduler.github.io/crawler/index.json"
-TERM_URL_TMPL = "https://gt-scheduler.github.io/crawler/{term}.json"
+INDEX_URL = "https://gt-scheduler.github.io/crawler-v2/index.json"
+TERM_URL_TMPL = "https://gt-scheduler.github.io/crawler-v2/{term}.json"
 
 # How long a synced term catalog is considered fresh before a command
 # will re-fetch it. Finished terms don't change, so in practice this
@@ -51,7 +51,10 @@ def fetch_term_index(client: httpx.Client) -> list[str]:
         resp.raise_for_status()
     except httpx.HTTPError as exc:
         raise GTDataError(f"failed to fetch term index: {exc}") from exc
-    return resp.json().get("terms", [])
+    terms = resp.json().get("terms", [])
+    # crawler-v2's index.json lists terms as {"term": ..., "finalized": ...}
+    # objects rather than bare strings (the old crawler repo's format).
+    return [t["term"] if isinstance(t, dict) else t for t in terms]
 
 
 def fetch_term_catalog(client: httpx.Client, term: str) -> dict:

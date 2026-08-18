@@ -25,8 +25,8 @@ endpoints with no auth required:
 
 | Source | URL | Use for |
 | --- | --- | --- |
-| Term list | `https://gt-scheduler.github.io/crawler/index.json` | Discover available terms |
-| Bulk term catalog | `https://gt-scheduler.github.io/crawler/{term}.json` | Full course/section listing for one term, updated every ~30 min |
+| Term list | `https://gt-scheduler.github.io/crawler-v2/index.json` | Discover available terms |
+| Bulk term catalog | `https://gt-scheduler.github.io/crawler-v2/{term}.json` | Full course/section listing for one term, updated every ~30 min |
 | Live seat count | `https://gt-scheduler.azurewebsites.net/proxy/class_section?term={term}&crn={crn}` | Real-time seats/waitlist for one CRN, proxied live from Oscar |
 
 **Old semesters**: pull once from the bulk term JSON, cache in SQLite,

@@ -10,6 +10,11 @@ from pathlib import Path
 DEFAULT_POLL_INTERVAL_SECONDS = 60
 DEFAULT_NTFY_SERVER = "https://ntfy.sh"
 
+# Set by the interactive shell (shell.py) after its startup semester prompt,
+# read by cli._resolve_term. Session-scoped (this process only) — never
+# written to config.toml, so it doesn't leak into other invocations.
+SESSION_TERM_ENV_VAR = "GTCLASS_SESSION_TERM"
+
 
 def config_dir() -> Path:
     base = os.environ.get("XDG_CONFIG_HOME")

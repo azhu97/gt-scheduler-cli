@@ -43,11 +43,20 @@ Config lives at `~/.config/gtclass/config.toml`; the SQLite store lives at
 ## Interactive shell
 
 Running `gtclass` with no arguments drops you into an interactive shell —
-type any of the commands above without the leading `gtclass`:
+type any of the commands above without the leading `gtclass`. On startup it
+asks which semester to browse (the most recent one with data, or a specific
+previous one you pick from a list); that choice becomes the default term for
+the rest of the session, so you don't need `--term` on every line (pass
+`--term` on a command to override it just for that line):
 
 ```
 $ gtclass
-gtclass interactive shell — type a command (e.g. `search CS 4210`), or `exit`/Ctrl+D to quit.
+Which semester do you want to browse?
+  1) Current (most recent with data): Spring 2023 [202302]
+  2) A previous semester
+Enter 1 or 2 [1]: 1
+Using Spring 2023 [202302] for this session (pass --term to override for a single command).
+Type a command (e.g. `search CS 4210`), or `exit`/Ctrl+D to quit.
 gtclass> search "CS 4210"
 gtclass> watch add 87086
 gtclass> watch list

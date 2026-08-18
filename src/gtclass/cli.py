@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 import re
 import sqlite3
 import sys
@@ -10,7 +11,7 @@ from datetime import datetime, timezone
 import click
 
 from gtclass import daemon, db, formatting, gtdata, live, notify, poller
-from gtclass.config import Config, load_config, save_config
+from gtclass.config import Config, SESSION_TERM_ENV_VAR, load_config, save_config
 from gtclass.formatting import console, err_console
 from gtclass.gtdata import GTDataError
 from gtclass.live import LiveDataError
@@ -21,6 +22,9 @@ _COURSE_KEY_RE = re.compile(r"^\s*([A-Za-z]+)\s*(\d[\dA-Za-z]*)\s*$")
 def _resolve_term(conn: sqlite3.Connection, client, term: str | None, cfg: Config) -> str:
     if term:
         return term
+    session_term = os.environ.get(SESSION_TERM_ENV_VAR)
+    if session_term:
+        return session_term
     if cfg.default_term:
         return cfg.default_term
     try:

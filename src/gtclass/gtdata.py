@@ -36,6 +36,15 @@ def new_client() -> httpx.Client:
     return httpx.Client(timeout=20.0, headers={"User-Agent": "gtclass-cli"})
 
 
+_SEASON_NAMES = {"02": "Spring", "05": "Summer", "08": "Fall"}
+
+
+def term_label(term: str) -> str:
+    """Human label for a term code, e.g. "202302" -> "Spring 2023"."""
+    year, season = term[:4], term[4:6]
+    return f"{_SEASON_NAMES.get(season, season)} {year}"
+
+
 def fetch_term_index(client: httpx.Client) -> list[str]:
     try:
         resp = client.get(INDEX_URL)

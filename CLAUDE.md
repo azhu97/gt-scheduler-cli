@@ -93,15 +93,28 @@ Module map (`src/gtclass/`):
 - `shell.py` — interactive shell (bare `gtclass`). Reuses the same Click
   command tree as the parser/dispatcher: each typed line is `shlex.split()`
   and fed into `cli.main.main(args=..., standalone_mode=False)`, so every
-  command gets shell support for free with no duplicated logic. Stateless —
-  `--term` / `default_term` behave exactly as in one-shot invocations.
+  command gets shell support for free with no duplicated logic. On startup
+  it prompts current-vs-previous semester (via `gtdata.resolve_default_term`
+  / `gtdata.term_label`) and stores the pick in the
+  `config.SESSION_TERM_ENV_VAR` env var for the rest of the process — the
+  one piece of session state the shell carries. `cli._resolve_term` checks
+  that env var (below `--term`, above `config.toml`'s `default_term`); it's
+  never written to disk, so it doesn't leak into other invocations.
 
 ## Non-obvious behavior worth knowing before changing things
 
-- **Term resolution precedence**: `--term` flag > `config.toml`
-  `default_term` > latest term from GT Scheduler's `index.json` (falls
-  back to the most recently locally-synced term if offline). See
-  `cli._resolve_term`.
+- **Term resolution precedence**: `--term` flag > shell session term
+  (`SESSION_TERM_ENV_VAR`, set only inside the interactive shell) >
+  `config.toml` `default_term` > latest *non-empty* term from GT
+  Scheduler's `index.json` (falls back to the most recently locally-synced
+  non-empty term if offline). See `cli._resolve_term` /
+  `gtdata.resolve_default_term`.
+- **GT Scheduler's `index.json` can list terms its crawler hasn't
+  populated yet** — e.g. it currently lists `202308` as the newest term,
+  but that term's catalog is an empty `{"courses": {}}` placeholder (real
+  data tops out at `202302`). `resolve_default_term()` walks the index
+  newest-first and syncs candidates until one has `course_count > 0`,
+  rather than trusting the max term code. Don't regress this to `max(terms)`.
 - **`watch list` refreshes live by default** (`--refresh/--no-refresh`,
   default on) — it calls `poll_once()` before rendering, so it also
   writes new snapshots and can trigger notifications as a side effect of

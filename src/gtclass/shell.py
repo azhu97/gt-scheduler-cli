@@ -84,6 +84,37 @@ def _select_term(conn, client) -> str | None:
     return previous[int(idx) - 1]
 
 
+def _command_tree(group: click.Group) -> dict[str, dict]:
+    """Map a Click group's command names to their subcommands (leaf = {})."""
+    tree: dict[str, dict] = {}
+    for name, cmd in group.commands.items():
+        tree[name] = _command_tree(cmd) if isinstance(cmd, click.Group) else {}
+    return tree
+
+
+def _make_completer(tree: dict[str, dict]):
+    """Build a readline completer that walks `tree` using the already-typed words."""
+
+    def complete(text: str, state: int) -> str | None:
+        import readline
+
+        buffer = readline.get_line_buffer()
+        prior = buffer[: readline.get_begidx()].split()
+
+        node = tree
+        for token in prior:
+            node = node.get(token, {})
+
+        candidates = set(node)
+        if not prior:
+            candidates |= EXIT_COMMANDS | {"help"}
+
+        matches = sorted(c for c in candidates if c.startswith(text))
+        return matches[state] if state < len(matches) else None
+
+    return complete
+
+
 def run_repl() -> None:
     if not sys.stdin.isatty():
         console.print("Not an interactive terminal; run `gtclass --help` for usage.")
@@ -92,7 +123,15 @@ def run_repl() -> None:
     from gtclass.cli import main
 
     try:
-        import readline  # noqa: F401  (side effect: line editing + history)
+        import readline  # side effect: line editing + history
+
+        readline.set_completer(_make_completer(_command_tree(main)))
+        # macOS ships libedit under the `readline` name, which binds tab
+        # differently than GNU readline.
+        if "libedit" in (readline.__doc__ or ""):
+            readline.parse_and_bind("bind ^I rl_complete")
+        else:
+            readline.parse_and_bind("tab: complete")
     except ImportError:
         pass
 

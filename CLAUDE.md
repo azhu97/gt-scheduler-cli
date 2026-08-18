@@ -34,6 +34,9 @@ python3 -m venv .venv                    # requires Python 3.11+ (tomllib)
 
 No linter/formatter is configured yet.
 
+Do not add a `Co-Authored-By: Claude` (or similar) trailer to commit
+messages in this repo.
+
 ## Architecture
 
 ```

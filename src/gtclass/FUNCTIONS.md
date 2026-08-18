@@ -155,5 +155,10 @@ see the note in `CLAUDE.md`.
   of a set of valid answers (or a default is accepted).
 - `_select_term` — asks current-vs-previous semester, then which previous
   one if applicable; drives the shell's startup term prompt.
-- `run_repl` — the interactive shell's main loop: picks a term, builds the
-  `gtclass>{term}>` prompt, and dispatches typed lines into `cli.main`.
+- `_command_tree` — recursively maps a Click group's command names to
+  their subcommands, for driving tab completion.
+- `_make_completer` — builds a `readline` completer that walks a command
+  tree using the words already typed on the line.
+- `run_repl` — the interactive shell's main loop: picks a term, wires up
+  tab completion, builds the `gtclass>{term}>` prompt, and dispatches
+  typed lines into `cli.main`.

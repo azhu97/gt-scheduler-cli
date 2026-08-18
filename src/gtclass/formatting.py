@@ -128,6 +128,17 @@ def _course_label(subject: str, course_number: str, title: str | None, grade: st
     return label
 
 
+def _leaf_course_label(
+    conn: sqlite3.Connection, term: str, subject: str, course_number: str, grade: str | None
+) -> str:
+    """Label for a course reference with no further recursion (used by direct_only)."""
+    row = conn.execute(
+        "SELECT title FROM course_prereqs WHERE term = ? AND subject = ? AND course_number = ?",
+        (term, subject, course_number),
+    ).fetchone()
+    return _course_label(subject, course_number, row["title"] if row else None, grade)
+
+
 def _prereq_course_node(
     conn: sqlite3.Connection,
     term: str,
@@ -136,6 +147,7 @@ def _prereq_course_node(
     grade: str | None,
     ancestors: frozenset[tuple[str, str]],
     depth: int,
+    direct_only: bool = False,
 ) -> Tree:
     """Build the tree node for one course, recursing into its own prereqs."""
     row = conn.execute(
@@ -158,7 +170,7 @@ def _prereq_course_node(
 
     prereqs = json.loads(row["prereqs_json"]) if row["prereqs_json"] else []
     if prereqs:
-        _add_prereq_expr(node, conn, term, prereqs, ancestors | {key}, depth + 1)
+        _add_prereq_expr(node, conn, term, prereqs, ancestors | {key}, depth + 1, direct_only)
     else:
         node.add("[dim](no prerequisites)[/dim]")
     return node
@@ -171,12 +183,17 @@ def _add_prereq_expr(
     expr,
     ancestors: frozenset[tuple[str, str]],
     depth: int,
+    direct_only: bool = False,
 ) -> None:
     if not expr:
         return
     if isinstance(expr, dict):
         subject, _, course_number = expr.get("id", "").partition(" ")
-        if subject and course_number:
+        if not subject or not course_number:
+            return
+        if direct_only:
+            node.add(_leaf_course_label(conn, term, subject, course_number, expr.get("grade")))
+        else:
             node.add(
                 _prereq_course_node(conn, term, subject, course_number, expr.get("grade"), ancestors, depth)
             )
@@ -185,9 +202,11 @@ def _add_prereq_expr(
         op, *children = expr
         op_node = node.add(f"[italic]{op.upper()}[/italic]")
         for child in children:
-            _add_prereq_expr(op_node, conn, term, child, ancestors, depth)
+            _add_prereq_expr(op_node, conn, term, child, ancestors, depth, direct_only)
 
 
-def print_prereq_tree(conn: sqlite3.Connection, term: str, subject: str, course_number: str) -> None:
-    root = _prereq_course_node(conn, term, subject, course_number, None, frozenset(), 0)
+def print_prereq_tree(
+    conn: sqlite3.Connection, term: str, subject: str, course_number: str, direct_only: bool = False
+) -> None:
+    root = _prereq_course_node(conn, term, subject, course_number, None, frozenset(), 0, direct_only)
     console.print(root)

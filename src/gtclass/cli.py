@@ -134,7 +134,13 @@ def info(crn: str, term: str | None, history: bool) -> None:
 @main.command()
 @click.argument("query")
 @click.option("--term", help="Term code. Defaults to the current term.")
-def tree(query: str, term: str | None) -> None:
+@click.option(
+    "--min",
+    "min_",
+    is_flag=True,
+    help="Only show direct prerequisites, without expanding their own prerequisites.",
+)
+def tree(query: str, term: str | None, min_: bool) -> None:
     """Show a tree of prerequisites for a course (e.g. "CS 3510")."""
     cfg = load_config()
     with db.connect() as conn, gtdata.new_client() as client:
@@ -154,7 +160,7 @@ def tree(query: str, term: str | None) -> None:
         if found is None:
             raise click.ClickException(f"{subject} {number} not found in term {resolved_term}")
 
-        formatting.print_prereq_tree(conn, resolved_term, subject, number)
+        formatting.print_prereq_tree(conn, resolved_term, subject, number, direct_only=min_)
 
 
 @main.group()

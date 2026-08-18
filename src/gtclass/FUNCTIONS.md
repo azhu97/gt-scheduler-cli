@@ -26,7 +26,9 @@ see the note in `CLAUDE.md`.
 - `info` — shows full detail for one CRN (catalog row + live seat status),
   optionally with recorded seat history.
 - `tree` — prints a recursive tree of prerequisites for a course
-  ("SUBJECT NUMBER"), resolving referenced courses within the same term.
+  ("SUBJECT NUMBER"), resolving referenced courses within the same term;
+  `--min` limits it to direct prerequisites only, without expanding their
+  own prerequisites.
 - `watch` — Click group namespacing the `watch add|list|remove` commands.
 - `watch_add` — starts tracking a CRN, resolving a `"SUBJECT NUMBER"` +
   `--section` query to a CRN first if needed.
@@ -97,13 +99,16 @@ see the note in `CLAUDE.md`.
 - `print_watchlist` — renders `watch list` output as a Rich table.
 - `_course_label` — builds a "SUBJ NUM — Title (min grade X)" label for one
   prereq-tree node.
+- `_leaf_course_label` — same label, without recursing further; used when
+  `direct_only` is set so referenced courses are shown flat.
 - `_prereq_course_node` — builds the Rich `Tree` node for one course,
   recursing into its own prerequisites (guarding against cycles and a max
-  depth).
+  depth), unless `direct_only` stops it after the first level.
 - `_add_prereq_expr` — recursively adds an "and"/"or" prereq expression
   (or a leaf course reference) as children of a tree node.
-- `print_prereq_tree` — renders the `tree` command's output: the full
-  recursive prerequisite tree for one course.
+- `print_prereq_tree` — renders the `tree` command's output: the
+  prerequisite tree for one course, recursive by default or direct-only
+  (`--min`) when `direct_only` is set.
 
 ## `gtdata.py`
 

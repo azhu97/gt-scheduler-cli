@@ -101,7 +101,11 @@ Module map (`src/gtclass/`):
   `config.SESSION_TERM_ENV_VAR` env var for the rest of the process — the
   one piece of session state the shell carries. `cli._resolve_term` checks
   that env var (below `--term`, above `config.toml`'s `default_term`); it's
-  never written to disk, so it doesn't leak into other invocations.
+  never written to disk, so it doesn't leak into other invocations. Once a
+  term is picked, the REPL prompt itself is rebuilt to
+  `gtclass>{term_label}> ` (falling back to the bare `gtclass> ` from
+  `PROMPT` if no term was picked, e.g. Ctrl+C during selection) so it's
+  always visible which semester's data a command will hit.
 
 ## Non-obvious behavior worth knowing before changing things
 

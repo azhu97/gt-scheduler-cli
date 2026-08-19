@@ -5,6 +5,7 @@ from __future__ import annotations
 import os
 import re
 import sqlite3
+import subprocess
 import sys
 from datetime import datetime, timezone
 
@@ -372,6 +373,11 @@ def daemon_stop() -> None:
     """Stop the background poller."""
     if daemon.stop():
         console.print("[green]Stopped[/green] gtclass daemon")
+        if daemon.is_launchd_installed():
+            console.print(
+                "[dim]note: still installed via launchd — it will restart at the "
+                "next login. Run `gtclass daemon uninstall` to disable that.[/dim]"
+            )
     else:
         raise click.ClickException("daemon is not running")
 
@@ -380,8 +386,14 @@ def daemon_stop() -> None:
 def daemon_status() -> None:
     """Show whether the background poller is running, and its poll stats."""
     info = daemon.status_detail()
+    launchd_line = (
+        "  launchd:       installed (auto-restarts on crash/reboot)"
+        if daemon.is_launchd_installed()
+        else "  launchd:       not installed"
+    )
     if not info.running:
         console.print("[yellow]not running[/yellow]")
+        console.print(launchd_line)
         return
 
     console.print(f"[green]running[/green] (pid {info.pid})")
@@ -394,6 +406,30 @@ def daemon_status() -> None:
         )
     else:
         console.print("  last polled:   never (first poll pending)")
+    if info.last_error:
+        console.print(f"  [red]last error:[/red]   {info.last_error} (at {info.last_error_at})")
+    console.print(launchd_line)
+
+
+@daemon_group.command("install")
+@click.option("--interval", type=int, default=None, help="Poll interval in seconds.")
+def daemon_install(interval: int | None) -> None:
+    """Install as a launchd LaunchAgent: auto-starts at login, restarts on crash."""
+    try:
+        path = daemon.install_launchd(interval)
+    except (RuntimeError, subprocess.CalledProcessError) as exc:
+        raise click.ClickException(f"failed to install launchd agent: {exc}") from exc
+    console.print(f"[green]Installed[/green] launchd agent -> {path}")
+    console.print("It will start automatically at login and restart if it crashes.")
+
+
+@daemon_group.command("uninstall")
+def daemon_uninstall() -> None:
+    """Remove the launchd LaunchAgent (stops it and disables auto-start)."""
+    if daemon.uninstall_launchd():
+        console.print("[green]Uninstalled[/green] launchd agent")
+    else:
+        raise click.ClickException("launchd agent is not installed")
 
 
 if __name__ == "__main__":

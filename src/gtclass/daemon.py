@@ -10,16 +10,23 @@ from __future__ import annotations
 
 import json
 import os
+import plistlib
+import platform
 import signal
+import subprocess
 import sys
 import time
+import traceback
 from dataclasses import dataclass
 from datetime import datetime, timezone
+from pathlib import Path
 
 from gtclass import db, gtdata, notify, poller
-from gtclass.config import Config, load_config, pid_path, state_path
+from gtclass.config import Config, load_config, log_path, pid_path, state_path
 
 _stop_requested = False
+
+LAUNCHD_LABEL = "com.gtclass.daemon"
 
 
 @dataclass
@@ -31,6 +38,8 @@ class StatusInfo:
     last_polled_at: str | None
     last_poll_crns: int | None
     last_poll_errors: int | None
+    last_error: str | None
+    last_error_at: str | None
 
 
 def _handle_sigterm(signum, frame) -> None:
@@ -44,6 +53,22 @@ def is_running(pid: int) -> bool:
     except OSError:
         return False
     return True
+
+
+def _is_gtclass_process(pid: int) -> bool:
+    """Best-effort guard against a reused PID: checks the live process's
+    command line actually looks like a gtclass daemon, not just that
+    *some* process with this PID exists."""
+    try:
+        result = subprocess.run(
+            ["ps", "-p", str(pid), "-o", "command="],
+            capture_output=True,
+            text=True,
+            timeout=5,
+        )
+    except (OSError, subprocess.SubprocessError):
+        return True  # can't verify; don't false-negative a healthy daemon
+    return "gtclass" in result.stdout
 
 
 def read_pid() -> int | None:
@@ -60,7 +85,7 @@ def status() -> tuple[bool, int | None]:
     pid = read_pid()
     if pid is None:
         return False, None
-    if is_running(pid):
+    if is_running(pid) and _is_gtclass_process(pid):
         return True, pid
     pid_path().unlink(missing_ok=True)
     state_path().unlink(missing_ok=True)
@@ -94,6 +119,8 @@ def status_detail() -> StatusInfo:
         last_polled_at=state.get("last_polled_at"),
         last_poll_crns=state.get("last_poll_crns"),
         last_poll_errors=state.get("last_poll_errors"),
+        last_error=state.get("last_error"),
+        last_error_at=state.get("last_error_at"),
     )
 
 
@@ -126,21 +153,31 @@ def run_foreground(interval: int | None = None, on_tick=None) -> None:
         last_polled_at=None,
         last_poll_crns=None,
         last_poll_errors=None,
+        last_error=None,
+        last_error_at=None,
     )
 
     try:
         with db.connect() as conn, gtdata.new_client() as client:
             db.init_db(conn)
             while not _stop_requested:
-                events, errors = poller.poll_once(conn, client, cfg)
-                conn.commit()
-                _write_state(
-                    last_polled_at=datetime.now(timezone.utc).isoformat(),
-                    last_poll_crns=len(events),
-                    last_poll_errors=len(errors),
-                )
-                if on_tick:
-                    on_tick(events, errors)
+                try:
+                    events, errors = poller.poll_once(conn, client, cfg)
+                    conn.commit()
+                    _write_state(
+                        last_polled_at=datetime.now(timezone.utc).isoformat(),
+                        last_poll_crns=len(events),
+                        last_poll_errors=len(errors),
+                    )
+                    if on_tick:
+                        on_tick(events, errors)
+                except Exception as exc:  # noqa: BLE001 - keep the loop alive
+                    conn.rollback()
+                    traceback.print_exc(file=sys.stderr)
+                    _write_state(
+                        last_error=str(exc),
+                        last_error_at=datetime.now(timezone.utc).isoformat(),
+                    )
                 for _ in range(poll_interval * 10):
                     if _stop_requested:
                         break
@@ -155,8 +192,6 @@ def start_detached(interval: int | None = None) -> int:
     if running:
         return pid  # type: ignore[return-value]
 
-    from gtclass.config import log_path
-
     log_path().parent.mkdir(parents=True, exist_ok=True)
     with open(log_path(), "ab") as log_file:
         args = [sys.executable, "-m", "gtclass", "daemon", "start", "--foreground"]
@@ -167,8 +202,6 @@ def start_detached(interval: int | None = None) -> int:
 
 
 def subprocess_popen(args: list[str], log_file):
-    import subprocess
-
     return subprocess.Popen(
         args,
         stdout=log_file,
@@ -176,3 +209,62 @@ def subprocess_popen(args: list[str], log_file):
         stdin=subprocess.DEVNULL,
         start_new_session=True,
     )
+
+
+def launchd_plist_path() -> Path:
+    return Path.home() / "Library" / "LaunchAgents" / f"{LAUNCHD_LABEL}.plist"
+
+
+def _launchd_plist_dict(interval: int | None = None) -> dict:
+    args = [sys.executable, "-m", "gtclass", "daemon", "start", "--foreground"]
+    if interval:
+        args += ["--interval", str(interval)]
+    return {
+        "Label": LAUNCHD_LABEL,
+        "ProgramArguments": args,
+        "RunAtLoad": True,
+        "KeepAlive": {"SuccessfulExit": False},
+        "StandardOutPath": str(log_path()),
+        "StandardErrorPath": str(log_path()),
+        "ProcessType": "Background",
+    }
+
+
+def is_launchd_installed() -> bool:
+    return launchd_plist_path().exists()
+
+
+def install_launchd(interval: int | None = None) -> Path:
+    """Write a LaunchAgent plist and load it: auto-starts at login,
+    auto-restarts on a crash (nonzero exit), via launchd's KeepAlive."""
+    if platform.system() != "Darwin":
+        raise RuntimeError("launchd install is only supported on macOS")
+
+    path = launchd_plist_path()
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with open(path, "wb") as f:
+        plistlib.dump(_launchd_plist_dict(interval), f)
+
+    uid = os.getuid()
+    subprocess.run(
+        ["launchctl", "bootout", f"gui/{uid}/{LAUNCHD_LABEL}"],
+        capture_output=True,
+    )
+    subprocess.run(
+        ["launchctl", "bootstrap", f"gui/{uid}", str(path)],
+        check=True,
+        capture_output=True,
+    )
+    return path
+
+
+def uninstall_launchd() -> bool:
+    if not is_launchd_installed():
+        return False
+    uid = os.getuid()
+    subprocess.run(
+        ["launchctl", "bootout", f"gui/{uid}/{LAUNCHD_LABEL}"],
+        capture_output=True,
+    )
+    launchd_plist_path().unlink(missing_ok=True)
+    return True

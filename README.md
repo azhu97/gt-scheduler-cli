@@ -35,7 +35,18 @@ gtclass daemon start                        # run poller in background
 gtclass daemon start --foreground           # run in this terminal instead
 gtclass daemon stop
 gtclass daemon status
+
+gtclass daemon install                      # macOS: auto-start at login, auto-restart on crash
+gtclass daemon uninstall                    # remove that
 ```
+
+`daemon start` is a plain background process: it dies if you log out or
+reboot, and (previously) if it hit an unhandled error. `daemon install`
+registers it as a per-user launchd LaunchAgent instead — it starts
+automatically at login and launchd restarts it if it ever crashes. Use
+`daemon start`/`stop` for ad hoc runs (e.g. testing), `daemon install` for
+"just keep this running." (macOS only, since that's currently the only
+supported platform.)
 
 Config lives at `~/.config/gtclass/config.toml`; the SQLite store lives at
 `~/.local/share/gtclass/gtclass.db`.

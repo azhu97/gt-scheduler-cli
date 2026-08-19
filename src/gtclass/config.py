@@ -7,7 +7,7 @@ import tomllib
 from dataclasses import dataclass, field
 from pathlib import Path
 
-DEFAULT_POLL_INTERVAL_SECONDS = 60
+DEFAULT_POLL_INTERVAL_SECONDS = 30
 DEFAULT_NTFY_SERVER = "https://ntfy.sh"
 
 # Set by the interactive shell (shell.py) after its startup semester prompt,
@@ -42,6 +42,10 @@ def pid_path() -> Path:
 
 def log_path() -> Path:
     return data_dir() / "daemon.log"
+
+
+def state_path() -> Path:
+    return data_dir() / "daemon_state.json"
 
 
 @dataclass

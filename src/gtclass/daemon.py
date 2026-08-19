@@ -8,16 +8,29 @@ requirement without extra process-management machinery.
 
 from __future__ import annotations
 
+import json
 import os
 import signal
 import sys
 import time
+from dataclasses import dataclass
 from datetime import datetime, timezone
 
 from gtclass import db, gtdata, notify, poller
-from gtclass.config import Config, load_config, pid_path
+from gtclass.config import Config, load_config, pid_path, state_path
 
 _stop_requested = False
+
+
+@dataclass
+class StatusInfo:
+    running: bool
+    pid: int | None
+    started_at: str | None
+    poll_interval: int | None
+    last_polled_at: str | None
+    last_poll_crns: int | None
+    last_poll_errors: int | None
 
 
 def _handle_sigterm(signum, frame) -> None:
@@ -50,7 +63,38 @@ def status() -> tuple[bool, int | None]:
     if is_running(pid):
         return True, pid
     pid_path().unlink(missing_ok=True)
+    state_path().unlink(missing_ok=True)
     return False, None
+
+
+def _read_state() -> dict:
+    path = state_path()
+    if not path.exists():
+        return {}
+    try:
+        return json.loads(path.read_text())
+    except (ValueError, OSError):
+        return {}
+
+
+def _write_state(**updates: object) -> None:
+    state = _read_state()
+    state.update(updates)
+    state_path().write_text(json.dumps(state))
+
+
+def status_detail() -> StatusInfo:
+    running, pid = status()
+    state = _read_state() if running else {}
+    return StatusInfo(
+        running=running,
+        pid=pid,
+        started_at=state.get("started_at"),
+        poll_interval=state.get("poll_interval"),
+        last_polled_at=state.get("last_polled_at"),
+        last_poll_crns=state.get("last_poll_crns"),
+        last_poll_errors=state.get("last_poll_errors"),
+    )
 
 
 def stop() -> bool:
@@ -63,6 +107,7 @@ def stop() -> bool:
             break
         time.sleep(0.1)
     pid_path().unlink(missing_ok=True)
+    state_path().unlink(missing_ok=True)
     return True
 
 
@@ -75,6 +120,13 @@ def run_foreground(interval: int | None = None, on_tick=None) -> None:
 
     cfg = load_config()
     poll_interval = interval or cfg.poll_interval_seconds
+    _write_state(
+        started_at=datetime.now(timezone.utc).isoformat(),
+        poll_interval=poll_interval,
+        last_polled_at=None,
+        last_poll_crns=None,
+        last_poll_errors=None,
+    )
 
     try:
         with db.connect() as conn, gtdata.new_client() as client:
@@ -82,6 +134,11 @@ def run_foreground(interval: int | None = None, on_tick=None) -> None:
             while not _stop_requested:
                 events, errors = poller.poll_once(conn, client, cfg)
                 conn.commit()
+                _write_state(
+                    last_polled_at=datetime.now(timezone.utc).isoformat(),
+                    last_poll_crns=len(events),
+                    last_poll_errors=len(errors),
+                )
                 if on_tick:
                     on_tick(events, errors)
                 for _ in range(poll_interval * 10):
@@ -90,6 +147,7 @@ def run_foreground(interval: int | None = None, on_tick=None) -> None:
                     time.sleep(0.1)
     finally:
         pid_path().unlink(missing_ok=True)
+        state_path().unlink(missing_ok=True)
 
 
 def start_detached(interval: int | None = None) -> int:

@@ -378,12 +378,22 @@ def daemon_stop() -> None:
 
 @daemon_group.command("status")
 def daemon_status() -> None:
-    """Show whether the background poller is running."""
-    running, pid = daemon.status()
-    if running:
-        console.print(f"[green]running[/green] (pid {pid})")
-    else:
+    """Show whether the background poller is running, and its poll stats."""
+    info = daemon.status_detail()
+    if not info.running:
         console.print("[yellow]not running[/yellow]")
+        return
+
+    console.print(f"[green]running[/green] (pid {info.pid})")
+    console.print(f"  poll interval: {info.poll_interval}s" if info.poll_interval else "  poll interval: unknown")
+    console.print(f"  started at:    {info.started_at or 'unknown'}")
+    if info.last_polled_at:
+        console.print(
+            f"  last polled:   {info.last_polled_at} "
+            f"({info.last_poll_crns} CRN(s), {info.last_poll_errors} error(s))"
+        )
+    else:
+        console.print("  last polled:   never (first poll pending)")
 
 
 if __name__ == "__main__":
